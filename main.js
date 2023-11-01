@@ -1,4 +1,13 @@
 import { createCartLine, showCartContent } from './lib/ui.js';
+import { formatNumber } from './lib/helpers.js';
+
+/**
+ * @typedef {object} Product
+ * @property {number} id Auðkenni vöru
+ * @property {string} title Titill vöru
+ * @property {string} description Lýsing vöru
+ * @property {number} price Verð vöru
+ */
 
 const products = [
   {
@@ -23,24 +32,76 @@ const products = [
 ];
 
 /** Bæta vöru í körfu */
+/**
+ *
+ * @param {Product} product 
+ * @param {number} quantity
+ * 
+*/
 function addProductToCart(product, quantity) {
-  // Hér þarf að finna `<tbody>` í töflu og setja `cartLine` inn í það
-  const cart = document.querySelector('.cart-content');
+  const cartTableBodyElement = document.querySelector('.cart table tbody');
 
-  if (!cart) {
+  if (!cartTableBodyElement) {
     console.warn('fann ekki .cart');
     return;
   }
   
   // TODO hér þarf að athuga hvort lína fyrir vöruna sé þegar til
+  
   const cartLine = createCartLine(product, quantity);
-  cart.appendChild(cartLine);
+  // check if cartLine is already in cart and if so update quantity by adding new quantity to old quantity
+  const cartLineElement = cartTableBodyElement.querySelector(`[data-cart-product-id="${product.id}"]`);
+  if (cartLineElement) {
+    const quantityElement = cartLineElement.querySelector('td:nth-child(2)');
+    if (!quantityElement) {
+      console.warn('fann ekki quantityElement');
+      return;
+    }
+    const quantityElementValue = Number.parseInt(quantityElement.textContent);
+    const newQuantity = quantityElementValue + quantity;
+    quantityElement.textContent = newQuantity.toString();
+    const totalPriceElement = cartLineElement.querySelector('td:nth-child(4) span');
+    if (!totalPriceElement) {
+      console.warn('fann ekki totalPriceElement');
+      return;
+    }
+    totalPriceElement.textContent = formatNumber(product.price * newQuantity);
+    
+  } else {
+    // append the cart line only if it does not exist
+    cartTableBodyElement.appendChild(cartLine);
+  }
 
   // Sýna efni körfu
   showCartContent(true);
 
-  // TODO sýna/uppfæra samtölu körfu
+  // TODO show/update cart total by taking the quantity of the product and multiplying it with the price of the product and adding it to the total
+  const cartTotalElement = document.querySelector('.cart-total');
+  if (!cartTotalElement) {
+    console.warn('fann ekki .cart-total span');
+    return;
+  }
+
+  const cartLineElements = cartTableBodyElement.querySelectorAll('tr');
+  let totalAmount = 0;
+  for (const cartLineElement of cartLineElements) {
+    const priceElement = cartLineElement.querySelector('td:nth-child(3)');
+    const quantityElement = cartLineElement.querySelector('td:nth-child(2)');
+    if (!priceElement || !quantityElement) {
+      console.warn('fann ekki priceElement eða quantityElement');
+      continue;
+    }
+    
+    const price = Number.parseFloat(priceElement.textContent.replace('ISK', '').replace(',', ''));
+    const quantity = Number.parseInt(quantityElement.textContent);
+    // add the product of price and quantity to the total amount
+    totalAmount += price * quantity;
+  }
+  
+  cartTotalElement.textContent = formatNumber(totalAmount);
 }
+
+
 
 function submitHandler(event) {
   // Komum í veg fyrir að form submiti
@@ -55,9 +116,13 @@ function submitHandler(event) {
   // Finnum vöru með þessu productId
   const product = products.find((i) => i.id === productId);
 
+  if (!product) {
+    console.warn('fann ekki vöru');
+    return;
+  }
   // TODO hér þarf að finna fjölda sem á að bæta við körfu með því að athuga
   // á input
-  const quantity = 1;
+  const quantity = Number.parseInt(parent.querySelector('input').value);
 
   // Bætum vöru í körfu (hér væri gott að bæta við athugun á því að varan sé til)
   addProductToCart(product, quantity);

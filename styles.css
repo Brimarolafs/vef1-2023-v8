@@ -122,3 +122,7 @@ main {
 .cart {
   margin-block-end: var(--spacing);
 }
+
+.kvittun {
+  padding-top: var(--spacing);
+}
