@@ -1,6 +1,6 @@
-import { createCartLine, showCartContent } from './lib/ui.js';
+import { createCartLine, showCartContent, createReceipt  } from './lib/ui.js';
 import { formatNumber } from './lib/helpers.js';
-
+showCartContent(true);
 /**
  * @typedef {object} Product
  * @property {number} id Auðkenni vöru
@@ -78,7 +78,7 @@ function addProductToCart(product, quantity) {
   // TODO show/update cart total by taking the quantity of the product and multiplying it with the price of the product and adding it to the total
   const cartTotalElement = document.querySelector('.cart-total');
   if (!cartTotalElement) {
-    console.warn('fann ekki .cart-total span');
+    console.warn('fann ekki .cart-total');
     return;
   }
 
@@ -137,4 +137,27 @@ for (const form of Array.from(addToCartForms)) {
   form.addEventListener('submit', submitHandler);
 }
 
-// TODO bæta við event handler á form sem submittar pöntun
+
+
+
+// TODO make a recipt function that takes in the name and address and returns a receipt
+
+
+
+function showReceipt(event) {
+  event.preventDefault();
+  const productsclass=document.querySelector('.products');
+  const cart=document.querySelector('.cart');
+  const receipt=document.querySelector('.receipt');
+  if(productsclass && cart && receipt){
+    productsclass.classList.add('hidden');
+    cart.classList.add('hidden');
+    receipt.classList.remove('hidden');
+  } 
+ 
+}
+
+const receiptLink = document.querySelector('.takki');
+if (receiptLink){
+receiptLink.addEventListener('submit', showReceipt);
+}
